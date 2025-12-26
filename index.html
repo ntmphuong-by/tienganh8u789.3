@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Game Tiếng Anh 8 - Vui Xuân Đón Tết</title>
+  <link href="https://fonts.googleapis.com/css2?family=Pangolin&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --red:#d63031; --yellow:#fdcb6e; --cream:#fff8e1; --text:#2d3436; --green:#00b894; }
+    body{
+      margin:0; font-family:'Nunito',sans-serif;
+      background:linear-gradient(135deg,#ff9a9e 0%,#fad0c4 99%,#fad0c4 100%);
+      height:100vh; display:flex; justify-content:center; align-items:center;
+      overflow:hidden; user-select:none;
+    }
+
+    .flower{ position:fixed; top:-10%; z-index:1; pointer-events:none; animation:fall linear infinite; font-size:1.5rem; }
+    @keyframes fall{ 0%{transform:translateY(-10vh) rotate(0deg); opacity:1} 100%{transform:translateY(110vh) rotate(360deg); opacity:.7} }
+
+    #start-screen{
+      position:fixed; inset:0;
+      background:rgba(255,255,255,.98);
+      z-index:10000;
+      display:flex; flex-direction:column; justify-content:center; align-items:center;
+      text-align:center;
+    }
+    #start-btn{
+      background:var(--red); color:#fff;
+      border:4px solid var(--yellow);
+      padding:20px 60px;
+      font-family:'Pangolin',cursive;
+      font-size:2.5rem;
+      border-radius:50px;
+      cursor:pointer;
+      margin-top:30px;
+      box-shadow:0 10px 25px rgba(214,48,49,.4);
+      animation:pulse 1.5s infinite;
+      transition:transform .2s;
+    }
+    #start-btn:hover{ transform:scale(1.05); }
+    @keyframes pulse{ 0%{transform:scale(1)} 50%{transform:scale(1.05)} 100%{transform:scale(1)} }
+
+    .game-container{
+      position:relative; z-index:10;
+      background:rgba(255,255,255,.95);
+      width:95%; max-width:900px; height:90vh;
+      border-radius:25px;
+      border:5px solid var(--red);
+      box-shadow:0 0 40px rgba(255,107,107,.3);
+      display:flex; flex-direction:column;
+      padding:20px;
+    }
+    .header{ text-align:center; border-bottom:2px dashed var(--yellow); padding-bottom:10px; margin-bottom:10px; }
+    h1{ margin:0; color:var(--red); font-family:'Pangolin',cursive; font-size:2.5rem; text-shadow:1px 1px 0 #fff; }
+    .stats{ display:flex; justify-content:space-between; font-weight:700; color:#e17055; font-size:1.1rem; }
+    .content-area{ flex:1; overflow-y:auto; padding-right:10px; }
+
+    .passage-box{
+      background:var(--cream); padding:15px; border-radius:10px;
+      border-left:5px solid var(--yellow); margin-bottom:15px;
+      display:none; line-height:1.6; font-size:1rem; color:#444;
+    }
+    .question{ font-size:1.25rem; font-weight:800; margin-bottom:20px; color:var(--text); }
+    .options{ display:grid; grid-template-columns:1fr 1fr; gap:15px; }
+    .opt-btn{
+      background:#fff; border:2px solid #ffeaa7;
+      padding:15px; border-radius:15px; cursor:pointer;
+      font-size:1rem; color:#636e72; transition:.2s;
+      font-weight:800; text-align:left;
+      box-shadow:0 3px 0 #ffeaa7;
+    }
+    .opt-btn:active{ transform:translateY(3px); box-shadow:none; }
+    .opt-btn:hover{ background:#fffce3; border-color:var(--yellow); }
+    .opt-btn.correct{ background:#55efc4; color:#006266; border-color:#00b894; box-shadow:0 3px 0 #00b894; }
+    .opt-btn.wrong{ background:#ff7675; color:#fff; border-color:#d63031; box-shadow:0 3px 0 #d63031; }
+    .opt-btn.disabled{ pointer-events:none; opacity:.85; }
+
+    .feedback{
+      margin-top:15px; padding:15px; border-radius:15px;
+      display:none; background:#fff; border:1px solid #dfe6e9;
+      animation:slideUp .3s;
+    }
+    @keyframes slideUp{ from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
+
+    .controls{
+      margin-top:10px; border-top:2px dashed var(--yellow);
+      padding-top:10px; display:flex; justify-content:space-between; align-items:center;
+    }
+    .music-btn{
+      background:#fff; border:2px solid #ddd; border-radius:50%;
+      width:45px; height:45px; cursor:pointer; font-size:1.5rem;
+      display:flex; justify-content:center; align-items:center;
+      transition:.3s;
+    }
+    .music-playing{ background:var(--red); color:#fff; border-color:var(--red); animation:spin 4s linear infinite; }
+    @keyframes spin{ 100%{ transform:rotate(360deg); } }
+
+    .next-btn{
+      background:var(--yellow); color:#d35400; border:none;
+      padding:10px 30px; border-radius:30px; font-weight:900;
+      font-size:1.2rem; cursor:pointer; display:none;
+      box-shadow:0 4px 0 #e67e22; font-family:'Pangolin',cursive;
+    }
+    .next-btn:active{ transform:translateY(4px); box-shadow:none; }
+
+    @media (max-width:600px){
+      .options{ grid-template-columns:1fr; }
+      #start-btn{ font-size:1.8rem; padding:15px 40px; }
+      h1{ font-size:1.8rem; }
+      .game-container{ padding:15px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="start-screen">
+    <h1 style="color: var(--red); font-size: 3.5rem; text-shadow: 2px 2px 0 var(--yellow);">🌸 KHAI BÚT ĐẦU XUÂN 🌸</h1>
+    <p style="font-size: 1.2rem; color: #555; margin-top: 10px;">100 Câu Hỏi Ôn Tập Unit 7 - 8 - 9</p>
+    <button id="start-btn">🧧 BẮT ĐẦU 🧧</button>
+    <p style="margin-top: 20px; color: #888; font-size: 0.9rem;">(Nhạc nền sẽ phát sau khi bấm BẮT ĐẦU)</p>
+  </div>
+
+  <div id="flower-container"></div>
+
+  <div class="game-container">
+    <div class="header">
+      <h1>🌼 Happy New Year 🌼</h1>
+      <div class="stats">
+        <span>Câu: <span id="lbl-q">1</span>/<span id="lbl-total">100</span></span>
+        <span>Điểm: <span id="lbl-score">0</span></span>
+      </div>
+    </div>
+
+    <div class="content-area">
+      <div id="passage" class="passage-box"></div>
+      <div id="question" class="question"></div>
+      <div id="options" class="options"></div>
+
+      <div id="feedback" class="feedback">
+        <div id="fb-msg" style="font-weight: bold; font-size: 1.1rem; margin-bottom: 5px;"></div>
+        <div id="fb-exp" style="color: #333; font-size: 0.95rem;"></div>
+        <div id="fb-trans" style="font-style: italic; color: #666; margin-top: 5px; border-top: 1px solid #eee; padding-top: 5px; font-size: 0.9rem;"></div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="music-btn" id="btn-music" title="Bật/Tắt nhạc">🎵</button>
+      <button id="btn-next" class="next-btn">Câu Tiếp Theo ➜</button>
+    </div>
+  </div>
+
+  <script>
+    // =========================
+    // 1) DATA (GIỮ NGUYÊN 100 CÂU CỦA BẠN)
+    // =========================
+    const questions = [
+      // UNIT 7: POLLUTION (1-30)
+      {q:"If the water is contaminated, people ______ more diseases.",o:["get","will get","would get","got"],a:1,e:"Câu điều kiện loại 1: If + S + V(s/es), S + will + V.",t:"Nếu nước bị ô nhiễm, mọi người sẽ mắc nhiều bệnh hơn."},
+      {q:"The street doesn't look ______ because it has a lot of rubbish.",o:["attract","attractive","attraction","attractively"],a:1,e:"Sau động từ liên kết 'look' là tính từ.",t:"Con phố trông không hấp dẫn vì có nhiều rác."},
+      {q:"Identify the mistake: 'Because the heavy rain, the meeting was delayed.'",o:["Because","heavy rain","was","delayed"],a:0,e:"Sau Because là mệnh đề. Cụm danh từ 'the heavy rain' phải dùng 'Because of'.",t:"Lỗi sai: Because -> Because of."},
+      {q:"Pronunciation: A. pollution, B. question, C. action, D. attraction",o:["pollution","question","action","attraction"],a:1,e:"B. question (/tʃən/). Các từ còn lại /ʃən/.",t:"Chọn từ phát âm khác."},
+      {q:"If I ______ you, I would ride a bike instead of a motorbike.",o:["am","were","will be","be"],a:1,e:"Câu điều kiện loại 2 (lời khuyên): If I were you.",t:"Nếu tôi là bạn, tôi sẽ đi xe đạp."},
+      {q:"Rewrite: 'Jimmy ate a lot of fast food, so he put on 10kg.' -> Because ______.",o:["Jimmy ate a lot, he put on 10kg.","Jimmy put on 10kg, he ate a lot.","he put on 10kg, Jimmy ate a lot.","of eating a lot, he put on 10kg."],a:0,e:"Because + Nguyên nhân -> Kết quả.",t:"Vì Jimmy ăn nhiều nên anh ấy tăng cân."},
+      {q:"Light pollution happens when there is too much ______ in the city at night.",o:["noise","water","artificial light","gas"],a:2,e:"Artificial light (ánh sáng nhân tạo).",t:"Ô nhiễm ánh sáng do quá nhiều ánh sáng nhân tạo."},
+      {q:"If we ______ cutting down trees, we will destroy the forests.",o:["continue","continued","will continue","are continuing"],a:0,e:"Câu điều kiện loại 1.",t:"Nếu tiếp tục chặt cây, ta sẽ phá hủy rừng."},
+      {q:"Find the mistake: 'I am a member of the club, because I go to meetings twice a week.'",o:["am","of","because","twice"],a:2,e:"Ngữ cảnh này dùng 'so' (kết quả) hợp lý hơn: Tôi là thành viên NÊN tôi đi họp.",t:"Lỗi sai từ nối."},
+      {q:"Water pollution can lead to the death of ______ animals.",o:["land","aquatic","flying","desert"],a:1,e:"Aquatic (thủy sinh).",t:"Ô nhiễm nước làm chết động vật thủy sinh."},
+      {q:"Unless we ______ plastic bags, the environment will be polluted.",o:["use","don't use","reduce","don't reduce"],a:2,e:"Unless = If... not. (Trừ khi chúng ta giảm dùng túi nhựa...)",t:"Trừ khi giảm dùng túi nhựa, môi trường sẽ bị ô nhiễm."},
+      {q:"Acid rain can lead ______ skin cancer.",o:["of","to","in","from"],a:1,e:"Lead to (dẫn đến).",t:"Mưa axit có thể dẫn đến ung thư da."},
+      {q:"People suffer from noise pollution if they ______ near an airport.",o:["live","lived","will live","living"],a:0,e:"Câu điều kiện loại 1.",t:"Mọi người chịu tiếng ồn nếu sống gần sân bay."},
+      {q:"Rewrite: 'Why don't we recycle bottles?' -> ______.",o:["We must recycle bottles.","Shall we recycle bottles?","What do we recycle for?","How to recycle?"],a:1,e:"'Why don't we' = 'Shall we'.",t:"Ta hãy tái chế chai lọ nhé?"},
+      {q:"Reading: What causes air pollution in cities?",o:["Trees","Factories and vehicles","Rivers","Rain"],a:1,p:"Motor vehicles and factories create so much air pollution...",e:"Xe cộ và nhà máy.",t:"Cái gì gây ô nhiễm không khí?"},
+      {q:"If people ______ digging the street, there wouldn't be noise pollution.",o:["stop","stopped","will stop","had stopped"],a:1,e:"Câu điều kiện loại 2 (giả định). If + V2/ed.",t:"Nếu người ta ngừng đào đường, sẽ không có tiếng ồn."},
+      {q:"Visual pollution includes ______.",o:["loud music","billboards and overhead power lines","dirty water","chemicals"],a:1,e:"Ô nhiễm tầm nhìn (biển quảng cáo, dây điện...).",t:"Ô nhiễm tầm nhìn bao gồm biển báo và dây điện."},
+      {q:"If you ______ the president, what would you do?",o:["are","were","will be","have been"],a:1,e:"Câu điều kiện loại 2.",t:"Nếu bạn là tổng thống, bạn sẽ làm gì?"},
+      {q:"Rewrite: 'Unless you study, you will fail.' -> If ______.",o:["you don't study, you will fail.","you study, you will fail.","you didn't study, you would fail.","you study, you won't fail."],a:0,e:"Unless = If not.",t:"Nếu bạn không học, bạn sẽ trượt."},
+      {q:"The river is polluted ______ waste from the factory.",o:["because","because of","although","despite"],a:1,e:"Because of + Noun Phrase (waste).",t:"Sông ô nhiễm vì rác thải."},
+      {q:"Don't drink that water. It's ______.",o:["pure","fresh","contaminated","clean"],a:2,e:"Contaminated (bị ô nhiễm/bẩn).",t:"Đừng uống, nước bị ô nhiễm rồi."},
+      {q:"If the sun ______, we will go for a walk.",o:["shine","shines","shone","shining"],a:1,e:"Câu điều kiện loại 1. Sun số ít -> shines.",t:"Nếu trời nắng, ta sẽ đi dạo."},
+      {q:"Many fish died ______ the water pollution.",o:["so","because","due to","since"],a:2,e:"Due to + Noun Phrase.",t:"Nhiều cá chết do ô nhiễm nước."},
+      {q:"Poisonous ______ from factories pollute the air.",o:["fumes","sounds","water","trash"],a:0,e:"Fumes (khói bụi/khí thải).",t:"Khí thải độc hại từ nhà máy."},
+      {q:"If we plant more trees, the air ______ fresher.",o:["is","will be","would be","was"],a:1,e:"Câu điều kiện loại 1.",t:"Nếu trồng thêm cây, không khí sẽ trong lành hơn."},
+      {q:"Find the mistake: 'If it will rain tomorrow, we stay at home.'",o:["will rain","tomorrow","stay","at"],a:0,e:"Mệnh đề If không dùng tương lai đơn. -> rains.",t:"Lỗi sai: will rain."},
+      {q:"Recycling is a good way to ______ the environment.",o:["damage","protect","pollute","harm"],a:1,e:"Protect (bảo vệ).",t:"Tái chế là cách tốt để bảo vệ môi trường."},
+      {q:"Rewrite: 'The noise gives me a headache.' -> I get a headache ______.",o:["because the noise","because of the noise","so the noise","although the noise"],a:1,e:"Because of + Noun.",t:"Tôi đau đầu vì tiếng ồn."},
+      {q:"We should replace normal bulbs with ______ bulbs.",o:["energy-wasting","energy-saving","light","heavy"],a:1,e:"Energy-saving (tiết kiệm năng lượng).",t:"Nên thay bằng bóng đèn tiết kiệm điện."},
+      {q:"Soil pollution affects ______.",o:["fish","birds","plants and trees","planes"],a:2,e:"Ô nhiễm đất ảnh hưởng cây cối.",t:"Ô nhiễm đất ảnh hưởng đến thực vật."},
+
+      // UNIT 8 (31-60)
+      {q:"Which word has different stress pattern?",o:["schedule","coffee","active","Chinese"],a:3,e:"D. Chinese (2). Còn lại âm 1.",t:"Chọn từ có trọng âm khác."},
+      {q:"The flight to Australia ______ at 7:00 pm.",o:["depart","departs","is departing","will depart"],a:1,e:"Lịch trình tàu xe dùng thì Hiện tại đơn.",t:"Chuyến bay đến Úc khởi hành lúc 7 giờ tối."},
+      {q:"Reading: A kiwi has ______.",o:["big wings","a long tail","no wings","feathers like other birds"],a:2,e:"Theo bài đọc Unit 8: Kiwi không có cánh.",t:"Chim Kiwi có đặc điểm gì? -> Không cánh."},
+      {q:"Reading: Where does the Kiwi live?",o:["Australia","New Zealand","USA","UK"],a:1,e:"Bài đọc: Kiwi sống ở New Zealand.",t:"Kiwi sống ở đâu? -> New Zealand."},
+      {q:"Rewrite: 'We began eating when it started to rain.' -> We have ______.",o:["eaten since it started to rain","ate when it started to rain","eating since it started to rain","begun to eat when it rained"],a:0,e:"Chuyển từ Quá khứ sang Hiện tại hoàn thành.",t:"Chúng tôi đã ăn từ khi trời bắt đầu mưa."},
+      {q:"Find the mistake: 'His skills improve a lot since his trip to Canada.'",o:["skills","improve","since","trip"],a:1,e:"Có 'since' -> Dùng Hiện tại hoàn thành (have improved).",t:"Lỗi sai: improve."},
+      {q:"The official languages of Canada are ______.",o:["English and German","English and French","English and Spanish","French and Spanish"],a:1,e:"Kiến thức Unit 8: Anh và Pháp.",t:"Ngôn ngữ chính thức của Canada là tiếng Anh và tiếng Pháp."},
+      {q:"Look at the schedule: The History exam ______ on Friday.",o:["be","is","will be","being"],a:1,e:"Lịch trình/Thời khóa biểu -> Hiện tại đơn.",t:"Bài kiểm tra Lịch sử diễn ra vào thứ Sáu."},
+      {q:"People in ______ drive on the left side of the road.",o:["America","Vietnam","Australia","China"],a:2,e:"Úc (Australia) lái xe bên trái.",t:"Người dân ở Úc lái xe bên trái đường."},
+      {q:"Pronunciation: Choose the word pronounced differently.",o:["schedule","school","scenery","scheme"],a:2,e:"C. scenery (/s/). Còn lại /k/.",t:"Chọn từ phát âm khác."},
+      {q:"The Aborigines ______ in Australia for more than 40,000 years.",o:["lived","have lived","live","are living"],a:1,e:"Hiện tại hoàn thành với 'for...'.",t:"Thổ dân đã sống ở Úc hơn 40.000 năm."},
+      {q:"A koala ______ about 18-20 hours sleeping in tree forks.",o:["spends","spent","is spending","has spent"],a:0,e:"Sự thật hiển nhiên -> Hiện tại đơn.",t:"Gấu túi dành 18-20h để ngủ."},
+      {q:"Rewrite: 'This is the first time he went abroad.' -> He hasn't ______.",o:["gone abroad before","went abroad before","go abroad before","going abroad before"],a:0,e:"Cấu trúc: hasn't + V3 (gone) + before.",t:"Anh ấy chưa từng ra nước ngoài trước đây."},
+      {q:"Which country is NOT an English-speaking country in Unit 8?",o:["USA","Vietnam","Australia","New Zealand"],a:1,e:"Vietnam nói tiếng Việt.",t:"Nước nào không nói tiếng Anh bản ngữ?"},
+      {q:"Which country is famous for kangaroos?",o:["USA","Australia","UK","Canada"],a:1,e:"Chuột túi là biểu tượng của Úc.",t:"Nước nào nổi tiếng với chuột túi?"},
+      {q:"The USA has ______ states.",o:["40","50","52","60"],a:1,e:"Mỹ có 50 bang.",t:"Mỹ có bao nhiêu bang? -> 50."},
+      {q:"Reading: What is the largest English speaking country?",o:["USA","UK","Canada","Australia"],a:0,p:"It is believed that there are around 230 million native speakers in the United States...",e:"Theo bài đọc: Mỹ.",t:"Nước nói tiếng Anh lớn nhất?"},
+      {q:"Pronunciation: A. puzzle, B. stunning, C. full, D. number",o:["puzzle","stunning","full","number"],a:2,e:"C. full (/u/). Còn lại /ʌ/.",t:"Chọn từ phát âm khác."},
+      {q:"Rewrite: 'I started learning English 5 years ago.' -> I have ______.",o:["learn English for 5 years","learnt English for 5 years","learning English for 5 years","learnt English since 5 years"],a:1,e:"Started...ago -> Have learnt... for.",t:"Tôi đã học tiếng Anh được 5 năm."},
+      {q:"The flag of the UK is called ______.",o:["The Stars and Stripes","The Union Jack","The Maple Leaf","The Southern Cross"],a:1,e:"Union Jack là cờ Vương quốc Anh.",t:"Cờ của Anh gọi là Union Jack."},
+      {q:"What time ______ the train leave?",o:["do","does","is","will"],a:1,e:"Hiện tại đơn với timetable.",t:"Mấy giờ tàu chạy?"},
+      {q:"I ______ to London three times.",o:["go","went","have gone","have been"],a:3,e:"Have been to (đã từng đến và về).",t:"Tôi đã đến Luân Đôn 3 lần."},
+      {q:"Find the mistake: 'She has lived here since 10 years.'",o:["has lived","here","since","years"],a:2,e:"Khoảng thời gian dùng 'for'.",t:"Lỗi sai: since -> for."},
+      {q:"Scotland is famous for ______.",o:["kilts","kimonos","ao dai","sari"],a:0,e:"Kilt là trang phục truyền thống Scotland.",t:"Scotland nổi tiếng với váy Kilt."},
+      {q:"It's only the first week, and I ______ so much.",o:["see","saw","am seeing","have seen"],a:3,e:"Hiện tại hoàn thành (trải nghiệm).",t:"Mới tuần đầu mà tôi đã thấy nhiều thứ."},
+      {q:"The capital of the USA is ______.",o:["New York","Washington D.C","Los Angeles","Chicago"],a:1,e:"Washington D.C.",t:"Thủ đô nước Mỹ là gì?"},
+      {q:"Can you tell me ______ to the station?",o:["way","the way","a way","ways"],a:1,e:"The way (đường đi).",t:"Bạn có thể chỉ đường ra ga không?"},
+      {q:"Stress: A. refugee, B. trainee, C. engineer, D. committee",o:["refugee","trainee","engineer","committee"],a:3,e:"D. com'mittee (2). Còn lại âm 3 (đuôi ee/eer).",t:"Chọn từ trọng âm khác."},
+      {q:"The Maori are the indigenous people of ______.",o:["Australia","New Zealand","Canada","USA"],a:1,e:"Người Maori ở New Zealand.",t:"Người Maori là dân bản địa ở đâu?"},
+      {q:"Present Simple usually implies ______ when talking about timetables.",o:["past","future","present","now"],a:1,e:"Hiện tại đơn chỉ tương lai khi nói về lịch trình.",t:"Hiện tại đơn thường ám chỉ tương lai khi nói về lịch trình."},
+
+      // UNIT 9 (61-90)
+      {q:"The roof ______ in a storm a few days ago.",o:["damaged","was damaged","has damaged","damage"],a:1,e:"Bị động quá khứ đơn (was damaged).",t:"Mái nhà bị hỏng trong bão."},
+      {q:"Thousands of people ______ by natural disasters every year.",o:["are affected","are affecting","have affected","were affected"],a:0,e:"Bị động hiện tại đơn.",t:"Hàng ngàn người bị ảnh hưởng bởi thiên tai."},
+      {q:"Pronunciation: Choose the word pronounced differently.",o:["watched","collapsed","caused","laughed"],a:2,e:"caused /d/, còn lại /t/.",t:"Chọn từ phát âm khác."},
+      {q:"Stress: Choose the word with different stress.",o:["disaster","natural","typhoon","volcano"],a:1,e:"natural âm 1, còn lại âm 2.",t:"Chọn từ trọng âm khác."},
+      {q:"Thousands of buildings ______ by the earthquake last year.",o:["destroyed","were destroyed","was destroyed","have been destroyed"],a:1,e:"Bị động quá khứ đơn (last year).",t:"Hàng ngàn tòa nhà bị phá hủy năm ngoái."},
+      {q:"Before I woke up, the storm ______.",o:["stopped","had stopped","has stopped","was stopping"],a:1,e:"Quá khứ hoàn thành.",t:"Trước khi tôi thức dậy, cơn bão đã tạnh."},
+      {q:"A violent storm with strong winds moving in a circle is a ______.",o:["flood","drought","cyclone","mudslide"],a:2,e:"Cyclone (lốc xoáy).",t:"Cơn bão gió xoáy là lốc xoáy."},
+      {q:"Mount St. Helens, a ______ in the USA, erupted in 1980.",o:["volcano","mountain","hill","lake"],a:0,e:"Volcano vì 'erupted'.",t:"Núi St. Helens phun trào năm 1980."},
+      {q:"Passive Rewrite: 'They have repaired the bridge.' -> The bridge ______.",o:["has been repaired","have been repaired","was repaired","is repaired"],a:0,e:"Bị động hiện tại hoàn thành.",t:"Cây cầu đã được sửa chữa."},
+      {q:"When a volcano erupts, it sends hot ______ and gas into the sky.",o:["water","ash","snow","ice"],a:1,e:"Ash (tro bụi).",t:"Núi lửa phun tro và khí nóng."},
+      {q:"Reading: Earthquake is caused by the collision of the Earth's ______.",o:["inner layers","outer layers","soft layers","hot layers"],a:1,p:"Earthquake is caused by the collision of the Earth's outer layers.",e:"Outer layers.",t:"Động đất do va chạm vỏ ngoài Trái Đất."},
+      {q:"Reading: How long did the 2004 Indian Ocean earthquake last?",o:["A few seconds","More than 10 minutes","Exactly 1 minute","24 hours"],a:1,p:"...lasted more than 10 minutes.",e:"Hơn 10 phút.",t:"Trận động đất 2004 kéo dài bao lâu?"},
+      {q:"Reading: What did the earthquake in 2004 create?",o:["A tornado","A series of tsunamis","A fire","A volcano"],a:1,p:"...creating a series of tsunamis.",e:"Chuỗi sóng thần.",t:"Trận động đất tạo ra gì?"},
+      {q:"Reading: How high were the waves in the 2004 tsunami?",o:["10 meters","20 meters","30 meters","50 meters"],a:2,p:"Waves reached the height of 30 meters.",e:"30 mét.",t:"Sóng cao bao nhiêu?"},
+      {q:"Reading: How many people were killed in that disaster?",o:["250,000","50,000","100,000","25,000"],a:0,p:"...more than 250,000 people had been killed...",e:"Hơn 250.000.",t:"Số người chết?"},
+      {q:"By the time the rescue team arrived, 50 people ______.",o:["injured","had injured","had been injured","were injured"],a:2,e:"QKHT bị động.",t:"Khi đội cứu hộ đến, 50 người đã bị thương."},
+      {q:"A tornado looks ______ a funnel.",o:["as","like","same","similar"],a:1,e:"Look like.",t:"Lốc xoáy trông như cái phễu."},
+      {q:"Hurricane Andrew swept through southern Florida ______ August 1992.",o:["in","on","at","since"],a:0,e:"in + tháng/năm.",t:"Bão Andrew quét qua Florida vào 8/1992."},
+      {q:"Find the mistake: 'During an earthquake, you should be away from heavy furnitures.'",o:["During","should be","away from","furnitures"],a:3,e:"Furniture không đếm được.",t:"Lỗi: furnitures."},
+      {q:"The earthquake in Kobe in 1995 ______ a large number of people.",o:["killed","was killed","killing","kills"],a:0,e:"QK đơn.",t:"Động đất Kobe 1995 làm chết nhiều người."},
+      {q:"Rewrite: 'The tsunami destroyed the village.' -> The village ______.",o:["destroyed by the tsunami","was destroyed by the tsunami","is destroyed by the tsunami","has been destroyed"],a:1,e:"Bị động QK đơn.",t:"Ngôi làng bị phá hủy bởi sóng thần."},
+      {q:"When I looked at the river, I knew it ______ for a long time.",o:["was contaminated","contaminated","had been contaminated","has been contaminated"],a:2,e:"QKHT bị động.",t:"Tôi biết nó đã bị ô nhiễm từ lâu."},
+      {q:"Many people become ______ due to natural disasters.",o:["homeless","homesick","homework","housewife"],a:0,e:"Homeless.",t:"Nhiều người vô gia cư do thiên tai."},
+      {q:"A severe drought causes a lack of ______.",o:["food","water","air","land"],a:1,e:"Drought -> thiếu nước.",t:"Hạn hán gây thiếu nước."},
+      {q:"The rescue workers ______ trapped people yesterday.",o:["save","saved","have saved","saving"],a:1,e:"yesterday -> QK đơn.",t:"Nhân viên cứu hộ đã cứu người hôm qua."},
+      {q:"Passive: 'The storm destroyed the house.' -> The house ______.",o:["was destroyed","is destroyed","has destroyed","destroyed"],a:0,e:"Bị động QK đơn.",t:"Ngôi nhà bị bão phá hủy."},
+      {q:"Mudslide often happens after ______.",o:["heavy rain","hot sun","strong wind","snow"],a:0,e:"Sau mưa lớn.",t:"Lở đất xảy ra sau mưa lớn."},
+      {q:"Pronunciation: A. thunder, B. erupt, C. trust, D. pull",o:["thunder","erupt","trust","pull"],a:3,e:"pull /u/, còn lại /ʌ/.",t:"Chọn từ phát âm khác."},
+      {q:"Stress: A. collapse, B. damage, C. forecast, D. rescue",o:["collapse","damage","forecast","rescue"],a:0,e:"collapse âm 2, còn lại âm 1.",t:"Chọn từ trọng âm khác."},
+      {q:"When the earthquake hit, we ______ dinner.",o:["have","had","are having","were having"],a:3,e:"QK tiếp diễn.",t:"Khi động đất xảy ra, chúng tôi đang ăn tối."},
+
+      // REVIEW (91-100)
+      {q:"If I ______ a bird, I would fly.",o:["am","were","was","will be"],a:1,e:"Điều kiện loại 2: If I were.",t:"Nếu tôi là chim, tôi sẽ bay."},
+      {q:"Vocabulary: A person who studies the environment is an ______.",o:["environment","environmentalist","engineer","artist"],a:1,e:"Environmentalist.",t:"Người nghiên cứu môi trường."},
+      {q:"Which sentence is correct?",o:["If it rain, I stay home.","If it rains, I will stay home.","If it rains, I stayed home.","If it raining, I will stay home."],a:1,e:"Cấu trúc đúng loại 1.",t:"Câu đúng: Nếu mưa, tôi sẽ ở nhà."},
+      {q:"Pronunciation: Choose the word pronounced differently.",o:["flood","moon","food","cool"],a:0,e:"flood /ʌ/, còn lại /u:/.",t:"Chọn từ phát âm khác."},
+      {q:"By the time we got home, the rain ______.",o:["stopped","stops","has stopped","had stopped"],a:3,e:"QKHT.",t:"Khi về nhà, mưa đã tạnh."},
+      {q:"Reuse, Reduce, and ______.",o:["Remake","Recycle","Remove","Repeat"],a:1,e:"3R: Reuse, Reduce, Recycle.",t:"Tái sử dụng, Tiết giảm, Tái chế."},
+      {q:"Find the mistake: 'I haven't seen him since 5 years.'",o:["haven't seen","him","since","years"],a:2,e:"Khoảng thời gian dùng 'for'.",t:"Lỗi: since -> for."},
+      {q:"We should use ______ bags instead of plastic bags.",o:["paper","glass","cloth","sand"],a:2,e:"Cloth bags.",t:"Nên dùng túi vải thay túi nhựa."},
+      {q:"Rewrite: 'Why don't we go to the cinema?' -> ______.",o:["Let's go to the cinema.","We must go to the cinema.","Going to the cinema?","We will go to the cinema."],a:0,e:"Why don't we = Let's.",t:"Chúng ta đi xem phim nhé?"},
+      {q:"Find the mistake: 'He said he is coming tomorrow.'",o:["said","is","coming","tomorrow"],a:1,e:"Câu gián tiếp phải lùi thì: is -> was.",t:"Lỗi: is."}
+    ];
+
+    // =========================
+    // 2) WEB AUDIO (CHUẨN MOBILE)
+    // =========================
+    let audioCtx = null;
+    let isMusicPlaying = false;
+    let nextNoteTime = 0;
+    let noteIndex = 0;
+    let rafId = null;
+    let unlocked = false;
+
+    const freq = {
+      'C4':261.63,'D4':293.66,'E4':329.63,'G4':392.00,'A4':440.00,
+      'C5':523.25,'D5':587.33,'E5':659.25,'G5':783.99,'A5':880.00
+    };
+
+    const melody = [
+      {n:'E5',d:0.5},{n:'G5',d:0.5},{n:'A5',d:1.0},
+      {n:'G5',d:0.5},{n:'E5',d:0.5},{n:'D5',d:1.0},
+      {n:'C5',d:0.5},{n:'D5',d:0.5},{n:'E5',d:0.5},{n:'G5',d:0.5},
+      {n:'A5',d:1.0},{n:'G5',d:1.0},
+      {n:'E5',d:0.5},{n:'D5',d:0.5},{n:'C5',d:1.0},
+      {n:null,d:1.0}
+    ];
+
+    function ensureAudioContext(){
+      if(!audioCtx){
+        const AC = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AC();
+      }
+      return audioCtx;
+    }
+
+    async function unlockAudio(){
+      try{
+        const ctx = ensureAudioContext();
+        if(ctx.state === 'suspended') await ctx.resume();
+
+        // "đánh tiếng" rất nhỏ để iOS/Chrome mở khóa audio
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        gain.gain.value = 0.0001;
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.02);
+
+        unlocked = true;
+      }catch(e){
+        // không sao, sẽ mở khi có tương tác tiếp theo
+      }
+    }
+
+    function updateMusicButtonUI(){
+      const btn = ui.musicBtn;
+      if(isMusicPlaying) btn.classList.add('music-playing');
+      else btn.classList.remove('music-playing');
+    }
+
+    function playTone(f, duration, time){
+      if(!f || !audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = f;
+
+      gain.gain.setValueAtTime(0, time);
+      gain.gain.linearRampToValueAtTime(0.15, time + 0.06);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(time);
+      osc.stop(time + duration);
+    }
+
+    function scheduler(){
+      if(!audioCtx) return;
+
+      while(nextNoteTime < audioCtx.currentTime + 0.12){
+        if(isMusicPlaying){
+          const note = melody[noteIndex];
+          if(note.n) playTone(freq[note.n], note.d, nextNoteTime);
+          nextNoteTime += note.d;
+          noteIndex = (noteIndex + 1) % melody.length;
+        }else{
+          nextNoteTime += 0.12;
+        }
+      }
+      rafId = requestAnimationFrame(scheduler);
+    }
+
+    function startMusicEngine(){
+      ensureAudioContext();
+      if(!rafId){
+        nextNoteTime = audioCtx.currentTime + 0.05;
+        scheduler();
+      }
+    }
+
+    function stopMusicEngine(){
+      if(rafId){
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
+    }
+
+    function playSFX(correct){
+      if(!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      if(correct){
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1760, audioCtx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.5);
+      }else{
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(180, audioCtx.currentTime);
+        osc.frequency.linearRampToValueAtTime(90, audioCtx.currentTime + 0.25);
+        gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.25);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.25);
+      }
+    }
+
+    // Mở khóa audio bằng tap/keypress đầu tiên (bổ trợ iOS/Android)
+    function setupGlobalUnlock(){
+      const handler = async () => {
+        await unlockAudio();
+        document.removeEventListener('pointerdown', handler);
+        document.removeEventListener('touchstart', handler);
+        document.removeEventListener('keydown', handler);
+      };
+      document.addEventListener('pointerdown', handler, {passive:true});
+      document.addEventListener('touchstart', handler, {passive:true});
+      document.addEventListener('keydown', handler);
+    }
+
+    // Resume audio khi quay lại tab/app
+    document.addEventListener('visibilitychange', async () => {
+      if(!audioCtx) return;
+      if(document.visibilityState === 'visible' && isMusicPlaying && audioCtx.state === 'suspended'){
+        try{ await audioCtx.resume(); }catch(e){}
+      }
+    });
+
+    // =========================
+    // 3) UI + GAME LOGIC
+    // =========================
+    const ui = {
+      start: document.getElementById('start-screen'),
+      startBtn: document.getElementById('start-btn'),
+      qLabel: document.getElementById('lbl-q'),
+      totalLabel: document.getElementById('lbl-total'),
+      scoreLabel: document.getElementById('lbl-score'),
+      passage: document.getElementById('passage'),
+      question: document.getElementById('question'),
+      options: document.getElementById('options'),
+      feedback: document.getElementById('feedback'),
+      msg: document.getElementById('fb-msg'),
+      exp: document.getElementById('fb-exp'),
+      trans: document.getElementById('fb-trans'),
+      nextBtn: document.getElementById('btn-next'),
+      musicBtn: document.getElementById('btn-music')
+    };
+
+    ui.totalLabel.textContent = questions.length;
+
+    // Hoa rơi
+    const flowers = ['🌸','🌼','🧧','🍃'];
+    const fContainer = document.getElementById('flower-container');
+    for(let i=0;i<30;i++){
+      const el = document.createElement('div');
+      el.className = 'flower';
+      el.textContent = flowers[Math.floor(Math.random()*flowers.length)];
+      el.style.left = Math.random()*100 + 'vw';
+      el.style.animationDuration = (Math.random()*5 + 5) + 's';
+      el.style.animationDelay = Math.random()*5 + 's';
+      el.style.fontSize = (Math.random()*20 + 15) + 'px';
+      fContainer.appendChild(el);
+    }
+
+    let curIdx = 0;
+    let score = 0;
+
+    setupGlobalUnlock();
+
+    ui.startBtn.addEventListener('click', initGame);
+    ui.musicBtn.addEventListener('click', toggleMusic);
+    ui.nextBtn.addEventListener('click', nextQuestion);
+
+    async function initGame(){
+      await unlockAudio();           // unlock audio bằng thao tác bấm BẮT ĐẦU
+      ensureAudioContext();
+
+      isMusicPlaying = true;         // bật nhạc mặc định sau khi bấm BẮT ĐẦU
+      updateMusicButtonUI();
+      startMusicEngine();
+
+      ui.start.style.display = 'none';
+      loadQuestion();
+    }
+
+    async function toggleMusic(){
+      ensureAudioContext();
+      await unlockAudio();
+      isMusicPlaying = !isMusicPlaying;
+      updateMusicButtonUI();
+      if(isMusicPlaying){
+        if(audioCtx.state === 'suspended') { try{ await audioCtx.resume(); }catch(e){} }
+        startMusicEngine();
+      }
+    }
+
+    function loadQuestion(){
+      ui.feedback.style.display = 'none';
+      ui.nextBtn.style.display = 'none';
+      ui.options.innerHTML = '';
+
+      const q = questions[curIdx];
+      ui.qLabel.textContent = curIdx + 1;
+
+      if(q.p){
+        ui.passage.style.display = 'block';
+        ui.passage.innerHTML = `<strong>📖 Bài đọc:</strong><br>${q.p}`;
+      }else{
+        ui.passage.style.display = 'none';
+      }
+
+      ui.question.textContent = q.q;
+
+      q.o.forEach((opt, idx) => {
+        const btn = document.createElement('div');
+        btn.className = 'opt-btn';
+        btn.textContent = opt;
+        btn.onclick = async () => {
+          await unlockAudio(); // đảm bảo SFX có tiếng trên mobile
+          check(idx, btn);
+        };
+        ui.options.appendChild(btn);
+      });
+    }
+
+    function check(idx, btn){
+      const q = questions[curIdx];
+      const btns = document.querySelectorAll('.opt-btn');
+      btns.forEach(b => b.classList.add('disabled'));
+
+      if(idx === q.a){
+        btn.classList.add('correct');
+        score += 10;
+        ui.scoreLabel.textContent = score;
+        playSFX(true);
+        showFeedback(true, q);
+      }else{
+        btn.classList.add('wrong');
+        btns[q.a].classList.add('correct');
+        playSFX(false);
+        showFeedback(false, q);
+      }
+
+      if(curIdx < questions.length - 1){
+        ui.nextBtn.style.display = 'block';
+        ui.nextBtn.textContent = "Câu Tiếp Theo ➜";
+      }else{
+        ui.nextBtn.style.display = 'block';
+        ui.nextBtn.textContent = "KẾT THÚC";
+        ui.nextBtn.onclick = endGame;
+      }
+    }
+
+    function showFeedback(correct, q){
+      ui.feedback.style.display = 'block';
+      ui.feedback.style.background = correct ? '#d1e7dd' : '#f8d7da';
+      ui.msg.textContent = correct ? "🎉 CHÍNH XÁC!" : "😢 SAI RỒI!";
+      ui.msg.style.color = correct ? '#0f5132' : '#842029';
+      ui.exp.innerHTML = `<strong>Giải thích:</strong> ${q.e}`;
+      ui.trans.innerHTML = `<strong>Dịch:</strong> ${q.t}`;
+    }
+
+    function nextQuestion(){
+      curIdx++;
+      loadQuestion();
+    }
+
+    function endGame(){
+      stopMusicEngine();
+      document.querySelector('.game-container').innerHTML = `
+        <div style="text-align:center; padding: 40px;">
+          <h1 style="font-size:3.5rem; font-family:'Pangolin'; color:var(--red)">KẾT QUẢ</h1>
+          <p style="font-size:1.5rem; margin:20px 0;">Tổng điểm:
+            <span style="color:var(--yellow); font-weight:bold; font-size:3rem; text-shadow:1px 1px 0 #000">${score}</span>
+          </p>
+          <p style="font-style:italic; color:#555">Chúc mừng năm mới! Học giỏi chăm ngoan nhé! 🌸</p>
+          <button class="next-btn" style="display:inline-block; margin-top:30px;" onclick="location.reload()">Làm Lại</button>
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html>
